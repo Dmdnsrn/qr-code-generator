@@ -11,15 +11,46 @@
         <div class="card shadow-lg p-4">
             <h2 class="text-center text-primary">📌 QR Code Үүсгэгч</h2>
             <div class="mt-3">
-                <label class="form-label">🌐 Site URL:</label>
-                <input type="text" id="urlInput" class="form-control" required placeholder="https://example.com">
+                <label class="form-label">📋 QR кодын төрөл:</label>
+                <select id="qrType" class="form-control" onchange="toggleFields()">
+                    <option value="website">Website</option>
+                    <option value="pdf">PDF</option>
+                    <option value="wifi">WiFi</option>
+                </select>
+
+                <!-- Website талбар -->
+                <div id="websiteFields" class="mt-2">
+                    <label class="form-label">🌐 Website URL:</label>
+                    <input type="text" id="websiteInput" class="form-control" placeholder="https://example.com">
+                </div>
+
+                <!-- PDF талбар -->
+                <div id="pdfFields" class="mt-2" style="display: none;">
+                    <label class="form-label">📄 PDF URL:</label>
+                    <input type="text" id="pdfInput" class="form-control" placeholder="https://example.com/file.pdf">
+                </div>
+
+                <!-- WiFi талбарууд -->
+                <div id="wifiFields" class="mt-2" style="display: none;">
+                    <label class="form-label">🌐 Сүлжээний нэр (SSID):</label>
+                    <input type="text" id="ssidInput" class="form-control" placeholder="Жишээ: MyWiFi">
+                    <label class="form-label mt-2">🔒 Хамгаалалтын төрөл:</label>
+                    <select id="securityInput" class="form-control">
+                        <option value="WPA">WPA/WPA2</option>
+                        <option value="WEP">WEP</option>
+                        <option value="nopass">Нууц үггүй</option>
+                    </select>
+                    <label class="form-label mt-2">🔑 Нууц үг:</label>
+                    <input type="text" id="passwordInput" class="form-control" placeholder="Нууц үг (хэрвээ байгаа бол)">
+                </div>
+
                 <button onclick="generateQR()" class="btn btn-success mt-3 w-100">✅ Үүсгэх</button>
             </div>
 
             <div id="qrResult" class="text-center mt-4" style="display: none;">
                 <h5>✅ Таны QR код:</h5>
                 <div id="qrcode"></div>
-                <a id="downloadLink" href="#" download="qrcode.png" class="btn btn-primary mt-3">⬇️ Татах</a>
+                <a id="downloadLink" href="#" download="qr_code.png" class="btn btn-primary mt-3">⬇️ Татах</a>
             </div>
 
             <p id="error" class="text-danger text-center mt-3" style="display: none;"></p>
@@ -32,8 +63,6 @@
             width: 300,
             height: 300,
             type: "canvas",
-            data: "",
-            image: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
             margin: 10,
             qrOptions: { errorCorrectionLevel: "Q" },
             imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 5 },
@@ -43,24 +72,59 @@
             cornersDotOptions: { type: "dot", color: "#4267b2" }
         });
 
+        function toggleFields() {
+            const qrType = document.getElementById("qrType").value;
+            document.getElementById("websiteFields").style.display = qrType === "website" ? "block" : "none";
+            document.getElementById("pdfFields").style.display = qrType === "pdf" ? "block" : "none";
+            document.getElementById("wifiFields").style.display = qrType === "wifi" ? "block" : "none";
+        }
+
         function generateQR() {
-            const url = document.getElementById("urlInput").value;
+            const qrType = document.getElementById("qrType").value;
             const qrResult = document.getElementById("qrResult");
             const error = document.getElementById("error");
             const qrcodeDiv = document.getElementById("qrcode");
+            let qrData = "";
 
-            if (!url) {
-                error.textContent = "Та URL оруулна уу!";
-                error.style.display = "block";
-                qrResult.style.display = "none";
-                return;
+            // Төрлөөс хамаарч QR кодын өгөгдлийг бэлтгэх
+            if (qrType === "website") {
+                qrData = document.getElementById("websiteInput").value;
+                if (!qrData) {
+                    error.textContent = "Website URL оруулна уу!";
+                    error.style.display = "block";
+                    qrResult.style.display = "none";
+                    return;
+                }
+            } else if (qrType === "pdf") {
+                qrData = document.getElementById("pdfInput").value;
+                if (!qrData) {
+                    error.textContent = "PDF URL оруулна уу!";
+                    error.style.display = "block";
+                    qrResult.style.display = "none";
+                    return;
+                }
+            } else if (qrType === "wifi") {
+                const ssid = document.getElementById("ssidInput").value;
+                const security = document.getElementById("securityInput").value;
+                const password = document.getElementById("passwordInput").value;
+                if (!ssid) {
+                    error.textContent = "Сүлжээний нэр оруулна уу!";
+                    error.style.display = "block";
+                    qrResult.style.display = "none";
+                    return;
+                }
+                qrData = `WIFI:S:${ssid};T:${security};P:${password};;`;
             }
 
+            // Алдааг нуух
             error.style.display = "none";
             qrcodeDiv.innerHTML = "";
-            qrCode.update({ data: url });
+
+            // QR код үүсгэх
+            qrCode.update({ data: qrData });
             qrCode.append(qrcodeDiv);
 
+            // Татах холбоос
             const downloadLink = document.getElementById("downloadLink");
             qrCode.getRawData("png").then(blob => {
                 downloadLink.href = URL.createObjectURL(blob);
@@ -70,6 +134,9 @@
                 error.style.display = "block";
             });
         }
+
+        // Эхний удаад талбаруудыг тохируулах
+        toggleFields();
     </script>
 </body>
 </html>
