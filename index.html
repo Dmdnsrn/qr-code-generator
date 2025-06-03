@@ -23,16 +23,19 @@
                 <option value="wifi">WiFi</option>
             </select>
 
+            <!-- Website -->
             <div id="websiteFields" class="mt-2">
                 <label class="form-label">🌐 Website URL:</label>
                 <input type="text" id="websiteInput" class="form-control" placeholder="https://example.com">
             </div>
 
+            <!-- PDF -->
             <div id="pdfFields" class="mt-2" style="display: none;">
                 <label class="form-label">📄 PDF URL:</label>
                 <input type="text" id="pdfInput" class="form-control" placeholder="https://example.com/file.pdf">
             </div>
 
+            <!-- WiFi -->
             <div id="wifiFields" class="mt-2" style="display: none;">
                 <label class="form-label">🌐 Сүлжээний нэр (SSID):</label>
                 <input type="text" id="ssidInput" class="form-control" placeholder="Жишээ: MyWiFi">
@@ -46,6 +49,19 @@
                 <input type="text" id="passwordInput" class="form-control" placeholder="Нууц үг (хэрвээ байгаа бол)">
             </div>
 
+            <!-- Color pickers -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <label class="form-label">🎨 Цэгний өнгө:</label>
+                    <input type="color" id="dotColorInput" class="form-control form-control-color" value="#0d6efd">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">🎯 Булангийн өнгө:</label>
+                    <input type="color" id="cornerColorInput" class="form-control form-control-color" value="#0d6efd">
+                </div>
+            </div>
+
+            <!-- Logo upload -->
             <label class="form-label mt-3">🖼 Лого (сонголтоор):</label>
             <input type="file" id="logoInput" accept="image/*" class="form-control">
 
@@ -94,12 +110,13 @@
             data = `WIFI:S:${ssid};T:${security};P:${password};;`;
         }
 
+        const dotColor = document.getElementById("dotColorInput").value;
+        const cornerColor = document.getElementById("cornerColorInput").value;
+        const imageFile = document.getElementById("logoInput").files[0];
+
         error.style.display = "none";
         result.style.display = "none";
         qrcodeDiv.innerHTML = "";
-
-        const fileInput = document.getElementById("logoInput");
-        const imageFile = fileInput.files[0];
 
         const config = {
             width: 300,
@@ -109,27 +126,16 @@
             image: undefined,
             margin: 10,
             qrOptions: { errorCorrectionLevel: "H" },
-            dotsOptions: {
-                type: "rounded",
-                color: "#0d6efd"
-            },
-            backgroundOptions: {
-                color: "#ffffff"
-            },
+            dotsOptions: { type: "rounded", color: dotColor },
+            backgroundOptions: { color: "#ffffff" },
             imageOptions: {
                 crossOrigin: "anonymous",
                 hideBackgroundDots: true,
                 imageSize: 0.4,
                 margin: 5
             },
-            cornersSquareOptions: {
-                type: "extra-rounded",
-                color: "#0d6efd"
-            },
-            cornersDotOptions: {
-                type: "dot",
-                color: "#0d6efd"
-            }
+            cornersSquareOptions: { type: "extra-rounded", color: cornerColor },
+            cornersDotOptions: { type: "dot", color: cornerColor }
         };
 
         if (imageFile) {
