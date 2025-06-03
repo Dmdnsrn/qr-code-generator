@@ -14,9 +14,9 @@
 <body class="bg-light">
 <div class="container mt-5">
     <div class="card shadow-lg p-4">
-        <h2 class="text-center text-primary">?? QR Code ???????</h2>
+        <h2 class="text-center text-primary">📌 QR Code Үүсгэгч</h2>
         <div class="mt-3">
-            <label class="form-label">?? QR ????? ?????:</label>
+            <label class="form-label">📋 QR кодын төрөл:</label>
             <select id="qrType" class="form-select" onchange="toggleFields()">
                 <option value="website">Website</option>
                 <option value="pdf">PDF</option>
@@ -24,38 +24,38 @@
             </select>
 
             <div id="websiteFields" class="mt-2">
-                <label class="form-label">?? Website URL:</label>
+                <label class="form-label">🌐 Website URL:</label>
                 <input type="text" id="websiteInput" class="form-control" placeholder="https://example.com">
             </div>
 
             <div id="pdfFields" class="mt-2" style="display: none;">
-                <label class="form-label">?? PDF URL:</label>
+                <label class="form-label">📄 PDF URL:</label>
                 <input type="text" id="pdfInput" class="form-control" placeholder="https://example.com/file.pdf">
             </div>
 
             <div id="wifiFields" class="mt-2" style="display: none;">
-                <label class="form-label">?? ????????? ??? (SSID):</label>
-                <input type="text" id="ssidInput" class="form-control" placeholder="?????: MyWiFi">
-                <label class="form-label mt-2">?? ???????????? ?????:</label>
+                <label class="form-label">🌐 Сүлжээний нэр (SSID):</label>
+                <input type="text" id="ssidInput" class="form-control" placeholder="Жишээ: MyWiFi">
+                <label class="form-label mt-2">🔒 Хамгаалалтын төрөл:</label>
                 <select id="securityInput" class="form-select">
                     <option value="WPA">WPA/WPA2</option>
                     <option value="WEP">WEP</option>
-                    <option value="nopass">???? ?????</option>
+                    <option value="nopass">Нууц үггүй</option>
                 </select>
-                <label class="form-label mt-2">?? ???? ??:</label>
-                <input type="text" id="passwordInput" class="form-control" placeholder="???? ?? (?????? ?????? ???)">
+                <label class="form-label mt-2">🔑 Нууц үг:</label>
+                <input type="text" id="passwordInput" class="form-control" placeholder="Нууц үг (хэрвээ байгаа бол)">
             </div>
 
-            <label class="form-label mt-3">?? ???? (??????????):</label>
+            <label class="form-label mt-3">🖼 Лого (сонголтоор):</label>
             <input type="file" id="logoInput" accept="image/*" class="form-control">
 
-            <button onclick="generateQR()" class="btn btn-success mt-3 w-100">? ??????</button>
+            <button onclick="generateQR()" class="btn btn-success mt-3 w-100">✅ Үүсгэх</button>
         </div>
 
         <div id="qrResult" class="text-center mt-4" style="display: none;">
-            <h5>? ???? QR ???:</h5>
+            <h5>✅ Таны QR код:</h5>
             <div id="qrcode" class="mx-auto"></div>
-            <a id="downloadLink" href="#" download="qr_code.png" class="btn btn-primary mt-3">?? ?????</a>
+            <a id="downloadLink" href="#" download="qr_code.png" class="btn btn-primary mt-3">⬇️ Татах</a>
         </div>
 
         <p id="error" class="text-danger text-center mt-3" style="display: none;"></p>
@@ -82,15 +82,15 @@
 
         if (type === "website") {
             data = document.getElementById("websiteInput").value;
-            if (!data) return showError("Website URL ??????? ??!");
+            if (!data) return showError("Website URL оруулна уу!");
         } else if (type === "pdf") {
             data = document.getElementById("pdfInput").value;
-            if (!data) return showError("PDF URL ??????? ??!");
+            if (!data) return showError("PDF URL оруулна уу!");
         } else if (type === "wifi") {
             const ssid = document.getElementById("ssidInput").value;
             const security = document.getElementById("securityInput").value;
             const password = document.getElementById("passwordInput").value;
-            if (!ssid) return showError("????????? ??? ??????? ??!");
+            if (!ssid) return showError("Сүлжээний нэр оруулна уу!");
             data = `WIFI:S:${ssid};T:${security};P:${password};;`;
         }
 
@@ -153,7 +153,7 @@
             document.getElementById("downloadLink").href = URL.createObjectURL(blob);
             document.getElementById("qrResult").style.display = "block";
         }).catch(() => {
-            showError("QR ??? ???????? ????? ??????!");
+            showError("QR код үүсгэхэд алдаа гарлаа!");
         });
     }
 
