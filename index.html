@@ -4,42 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>🔥 SUPER SENIOR QR GENERATOR</title>
+<title>👑 ULTRA QR GENERATOR</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
 <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 
 body{
-background:#f5f7fb;
+background:#eef1f6;
 }
 
 .card{
-border-radius:20px;
+border-radius:22px;
 }
 
-#qrcode{
-padding:25px;
-background:white;
-border-radius:25px;
-display:inline-block;
-}
-
-.frame{
-padding:25px;
-border:8px solid #0d6efd;
+#qrWrapper{
+padding:30px;
 border-radius:30px;
 display:inline-block;
+background:white;
+position:relative;
+overflow:hidden;
 }
 
-.logo-drop{
-border:2px dashed #aaa;
-padding:20px;
-border-radius:15px;
-cursor:pointer;
+.glass{
+background:rgba(255,255,255,.25) !important;
+backdrop-filter:blur(18px);
+}
+
+.logo-preview{
+width:80px;
+border-radius:12px;
+margin-top:10px;
 }
 
 </style>
@@ -52,96 +49,106 @@ cursor:pointer;
 <div class="card shadow-lg p-4">
 
 <h2 class="text-center text-primary mb-4">
-🔥 SUPER SENIOR QR GENERATOR
+👑 ULTRA QR GENERATOR
 </h2>
 
 <div class="row">
 
-<!-- LEFT PANEL -->
+<!-- LEFT -->
 <div class="col-md-5">
 
-<label>Data / URL</label>
-<input id="data"
-class="form-control mb-3"
-value="https://google.com">
+<label>QR төрөл</label>
+<select id="qrType" class="form-select mb-2">
+<option value="url">Website</option>
+<option value="wifi">WiFi</option>
+<option value="email">Email</option>
+<option value="phone">Phone</option>
+<option value="sms">SMS</option>
+<option value="vcard">vCard</option>
+</select>
 
-<label>Center Text</label>
-<input id="centerText"
-class="form-control mb-3"
-placeholder="Optional">
+<div id="dynamicFields"></div>
+
+<hr>
 
 <label>QR Size (4K ready)</label>
-<input type="range"
-min="300"
-max="2000"
-value="600"
-id="size"
-class="form-range">
+<input type="range" min="300" max="2000" value="800"
+id="size" class="form-range">
 
-<label>Gradient</label>
+<label>Gradient</label><br>
 <input type="color" id="c1" value="#0d6efd">
 <input type="color" id="c2" value="#6610f2">
 
 <hr>
 
-<h5>Social Presets</h5>
+<h5>🎨 Style</h5>
 
-<div class="d-grid gap-2 mb-3">
-
-<button class="btn btn-outline-primary"
-onclick="preset('https://facebook.com/')">
-Facebook
-</button>
-
-<button class="btn btn-outline-dark"
-onclick="preset('https://instagram.com/')">
-Instagram
-</button>
-
-<button class="btn btn-outline-success"
-onclick="preset('https://wa.me/')">
-WhatsApp
-</button>
-
-</div>
-
-<hr>
-
-<h5>Drag Logo</h5>
-
-<div class="logo-drop"
-id="drop">
-Drop logo here
-</div>
-
-<hr>
-
-<h5>Frame</h5>
-
-<select id="frameColor"
-class="form-select mb-3">
-<option value="#0d6efd">Blue</option>
-<option value="#000">Black</option>
-<option value="#ff0000">Red</option>
+<select id="style" class="form-select mb-2">
+<option value="default">Default</option>
+<option value="glass">Glass</option>
+<option value="apple">Apple</option>
+<option value="android">Android</option>
 </select>
 
-<button class="btn btn-success w-100 mb-3"
-onclick="downloadQR()">
-⬇️ Download QR
+<hr>
+
+<h5>🖼 Logo</h5>
+
+<input type="file"
+id="logoInput"
+accept="image/*"
+class="form-control mb-2">
+
+<button class="btn btn-outline-danger w-100 mb-2"
+onclick="removeLogo()">
+Remove Logo
 </button>
+
+<label>Logo size (auto safe ≤ 35%)</label>
+<input type="range"
+min="0.1"
+max="0.35"
+step="0.05"
+value="0.25"
+id="logoSize"
+class="form-range">
+
+<div class="form-check">
+<input type="checkbox"
+id="circle"
+class="form-check-input">
+<label class="form-check-label">
+Circle crop
+</label>
+</div>
+
+<div class="form-check">
+<input type="checkbox"
+id="shadow"
+class="form-check-input">
+<label class="form-check-label">
+Shadow
+</label>
+</div>
+
+<label>Border</label>
+<input type="color"
+id="borderColor"
+value="#ffffff"
+class="form-control mb-3">
 
 <hr>
 
-<h5>Batch Generate</h5>
+<h5>🌄 Background Image</h5>
 
 <input type="file"
-id="excel"
-accept=".xlsx"
-class="form-control mb-2">
+id="bgImage"
+accept="image/*"
+class="form-control mb-3">
 
-<button class="btn btn-danger w-100"
-onclick="batchGenerate()">
-Generate 1000 QR ZIP
+<button class="btn btn-success w-100"
+onclick="downloadQR()">
+⬇️ Download
 </button>
 
 </div>
@@ -150,7 +157,7 @@ Generate 1000 QR ZIP
 <!-- RIGHT -->
 <div class="col-md-7 text-center">
 
-<div id="frame" class="frame">
+<div id="qrWrapper">
 <div id="qrcode"></div>
 </div>
 
@@ -165,22 +172,119 @@ Generate 1000 QR ZIP
 
 let qr;
 let logoImage=null;
+let backgroundImage=null;
+
+//////////////////////////////////////////////////
+/////// QR FIELD BUILDER
+//////////////////////////////////////////////////
+
+function buildFields(){
+
+const t=qrType.value;
+let html="";
+
+if(t==="url")
+html=`<input id="data" class="form-control mb-2"
+value="https://google.com">`;
+
+if(t==="wifi")
+html=`
+<input id="ssid" class="form-control mb-2" placeholder="SSID">
+<input id="pass" class="form-control mb-2" placeholder="Password">
+`;
+
+if(t==="email")
+html=`
+<input id="mail" class="form-control mb-2" placeholder="email@example.com">
+`;
+
+if(t==="phone")
+html=`<input id="phone" class="form-control mb-2" placeholder="+976...">`;
+
+if(t==="sms")
+html=`
+<input id="smsphone" class="form-control mb-2" placeholder="+976...">
+<input id="smsmsg" class="form-control mb-2" placeholder="Message">
+`;
+
+if(t==="vcard")
+html=`
+<input id="name" class="form-control mb-2" placeholder="Name">
+<input id="org" class="form-control mb-2" placeholder="Company">
+<input id="tel" class="form-control mb-2" placeholder="Phone">
+`;
+
+dynamicFields.innerHTML=html;
+
+setTimeout(()=>{
+document.querySelectorAll("#dynamicFields input")
+.forEach(el=>el.oninput=buildQR);
+},100);
+
+}
+
+qrType.onchange=()=>{
+buildFields();
+buildQR();
+};
+
+//////////////////////////////////////////////////
+/////// DATA BUILDER
+//////////////////////////////////////////////////
+
+function getQRData(){
+
+const t=qrType.value;
+
+if(t==="url") return data.value;
+
+if(t==="wifi")
+return `WIFI:T:WPA;S:${ssid.value};P:${pass.value};;`;
+
+if(t==="email")
+return `mailto:${mail.value}`;
+
+if(t==="phone")
+return `tel:${phone.value}`;
+
+if(t==="sms")
+return `SMSTO:${smsphone.value}:${smsmsg.value}`;
+
+if(t==="vcard")
+return `BEGIN:VCARD
+VERSION:3.0
+FN:${name.value}
+ORG:${org.value}
+TEL:${tel.value}
+END:VCARD`;
+
+}
+
+//////////////////////////////////////////////////
+/////// QR BUILDER
+//////////////////////////////////////////////////
 
 function buildQR(){
 
-const size=parseInt(
-document.getElementById("size").value
-);
+const qrData=getQRData();
+if(!qrData) return;
+
+const size=parseInt(size.value);
+
+let dotType="rounded";
+
+if(style.value==="apple") dotType="classy";
+if(style.value==="android") dotType="dots";
 
 const config={
 
 width:size,
 height:size,
 type:"png",
-data:data.value,
+data:qrData,
 
 dotsOptions:{
-type:"rounded",
+type:dotType,
 gradient:{
 type:"linear",
 rotation:Math.PI/4,
@@ -195,81 +299,66 @@ backgroundOptions:{
 color:"#ffffff"
 },
 
-image:logoImage,
-
-imageOptions:{
-imageSize:.3
-},
-
 qrOptions:{
 errorCorrectionLevel:"H"
 }
 
 };
 
+if(logoImage){
+
+config.image=logoImage;
+
+config.imageOptions={
+imageSize:parseFloat(logoSize.value),
+margin:6
+};
+
+}
+
 qr=new QRCodeStyling(config);
 
 qrcode.innerHTML="";
 qr.append(qrcode);
 
-document.getElementById("frame")
-.style.borderColor=
-frameColor.value;
+applyWrapperStyles();
 
-addCenterText();
 }
 
-function addCenterText(){
+//////////////////////////////////////////////////
+/////// WRAPPER STYLES
+//////////////////////////////////////////////////
 
-const txt=centerText.value;
+function applyWrapperStyles(){
 
-if(!txt) return;
+qrWrapper.classList.remove("glass");
 
-const el=document.createElement("div");
+if(style.value==="glass")
+qrWrapper.classList.add("glass");
 
-el.innerText=txt;
+if(backgroundImage){
 
-el.style.position="absolute";
-el.style.left="50%";
-el.style.top="50%";
-el.style.transform="translate(-50%,-50%)";
-el.style.fontWeight="bold";
-el.style.fontSize="28px";
+qrWrapper.style.background=
+`url(${backgroundImage}) center/cover`;
 
-qrcode.style.position="relative";
-
-qrcode.appendChild(el);
+}else{
+qrWrapper.style.background="white";
 }
 
-function preset(url){
-data.value=url;
-buildQR();
 }
 
-data.oninput=buildQR;
-size.oninput=buildQR;
-c1.onchange=buildQR;
-c2.onchange=buildQR;
-centerText.oninput=buildQR;
-frameColor.onchange=buildQR;
+//////////////////////////////////////////////////
+/////// LOGO HANDLERS
+//////////////////////////////////////////////////
 
+logoInput.onchange=e=>{
 
-/// DRAG LOGO
-
-drop.ondragover=e=>{
-e.preventDefault();
-};
-
-drop.ondrop=e=>{
-
-e.preventDefault();
-
-const file=e.dataTransfer.files[0];
+const file=e.target.files[0];
+if(!file) return;
 
 const reader=new FileReader();
 
 reader.onload=x=>{
-
 logoImage=x.target.result;
 buildQR();
 };
@@ -277,8 +366,34 @@ buildQR();
 reader.readAsDataURL(file);
 };
 
+function removeLogo(){
+logoImage=null;
+logoInput.value="";
+buildQR();
+}
 
-/// DOWNLOAD
+//////////////////////////////////////////////////
+/////// BG IMAGE
+//////////////////////////////////////////////////
+
+bgImage.onchange=e=>{
+
+const file=e.target.files[0];
+if(!file) return;
+
+const reader=new FileReader();
+
+reader.onload=x=>{
+backgroundImage=x.target.result;
+buildQR();
+};
+
+reader.readAsDataURL(file);
+};
+
+//////////////////////////////////////////////////
+/////// DOWNLOAD
+//////////////////////////////////////////////////
 
 function downloadQR(){
 
@@ -286,88 +401,26 @@ qr.getRawData("png")
 .then(blob=>{
 
 const a=document.createElement("a");
-
 a.href=URL.createObjectURL(blob);
-a.download="super_qr.png";
+a.download="ULTRA_QR.png";
 a.click();
 
 });
 
 }
 
+//////////////////////////////////////////////////
 
-/// BATCH EXCEL → QR
+size.oninput=buildQR;
+logoSize.oninput=buildQR;
+c1.onchange=buildQR;
+c2.onchange=buildQR;
+style.onchange=buildQR;
+circle.onchange=buildQR;
+shadow.onchange=buildQR;
+borderColor.onchange=buildQR;
 
-async function batchGenerate(){
-
-const file=excel.files[0];
-
-if(!file){
-alert("Excel оруул!");
-return;
-}
-
-const dataBuffer=await file.arrayBuffer();
-
-const workbook=
-XLSX.read(dataBuffer);
-
-const sheet=
-workbook.Sheets[
-workbook.SheetNames[0]
-];
-
-const rows=
-XLSX.utils.sheet_to_json(sheet);
-
-for(let i=0;i<rows.length;i++){
-
-const tempQR=new QRCodeStyling({
-
-width:1000,
-height:1000,
-data:Object.values(rows[i])[0]
-
-});
-
-const blob=
-await tempQR.getRawData("png");
-
-const a=
-document.createElement("a");
-
-a.href=
-URL.createObjectURL(blob);
-
-a.download=
-`qr_${i+1}.png`;
-
-a.click();
-
-}
-
-alert("DONE ✅");
-
-}
-
-
-/// 🔥 Animated Gradient
-
-setInterval(()=>{
-
-const t=Date.now()/1000;
-
-c1.value=
-`hsl(${t*40%360},100%,50%)`;
-
-c2.value=
-`hsl(${(t*40+180)%360},100%,50%)`;
-
-buildQR();
-
-},3000);
-
-
+buildFields();
 buildQR();
 
 </script>
