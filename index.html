@@ -1,272 +1,354 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QR Code Generator</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      transition: background-color 0.3s, color 0.3s;
-    }
-    #qrcode canvas {
-      border-radius: 20px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    }
-    .dark-mode body,
-    .dark-mode .bg-light {
-      background-color: #121212 !important;
-      color: #e0e0e0;
-    }
-    .dark-mode .card {
-      background-color: #1e1e1e !important;
-      color: white;
-    }
-    .dark-mode .form-control,
-    .dark-mode .form-select {
-      background-color: #1f1f1f;
-      color: #fff;
-      border-color: #444;
-    }
-    .dark-mode .form-range {
-      filter: brightness(1.2);
-    }
-    .dark-mode .btn {
-      background-color: #3f51b5;
-      color: white;
-    }
-    .form-label {
-      font-weight: 600;
-    }
-    .card {
-      border-radius: 16px;
-    }
-    input[type="color"] {
-      height: 50px;
-    }
-    select.form-select, input.form-control {
-      border-radius: 12px;
-    }
-    .btn-success, .btn-primary {
-      border-radius: 12px;
-    }
-    .toggle-btn {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000;
-    }
-    @media (min-width: 768px) {
-      .layout-flex {
-        display: flex;
-        justify-content: space-between;
-        gap: 30px;
-      }
-      .form-section {
-        flex: 1;
-      }
-      .qr-section {
-        flex: 1;
-        text-align: center;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>QR Code Generator PRO</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+transition:.3s;
+}
+
+#qrcode canvas{
+border-radius:20px;
+box-shadow:0 0 15px rgba(0,0,0,.15);
+}
+
+.card{
+border-radius:18px;
+}
+
+.toggle-btn{
+position:fixed;
+top:20px;
+right:20px;
+}
+
+.dark-mode{
+background:#121212!important;
+color:#eee;
+}
+
+.dark-mode .card{
+background:#1e1e1e;
+}
+
+</style>
 </head>
+
 <body class="bg-light">
-  <button class="btn btn-secondary toggle-btn shadow" onclick="toggleTheme()">🌙 / ☀️</button>
 
-  <div class="container mt-5">
-    <div class="card shadow-lg p-4">
-      <h2 class="text-center text-primary mb-4">📌 QR Code Үүсгэгч</h2>
+<button class="btn btn-secondary toggle-btn"
+onclick="toggleTheme()">🌙 / ☀️</button>
 
-      <div class="layout-flex">
-        <!-- FORM SECTION -->
-        <div class="form-section">
-          <div class="mb-3">
-            <label class="form-label">📋 QR кодын төрөл:</label>
-            <select id="qrType" class="form-select" onchange="toggleFields(); generateQR();">
-              <option value="website">🌐 Website</option>
-              <option value="pdf">📄 PDF</option>
-              <option value="wifi">📶 WiFi</option>
-            </select>
-          </div>
+<div class="container mt-5">
 
-          <div id="websiteFields" class="mb-3">
-            <label class="form-label">🌐 Website URL:</label>
-            <input type="text" id="websiteInput" class="form-control" placeholder="https://example.com" oninput="generateQR()">
-          </div>
-          <div id="pdfFields" class="mb-3" style="display: none;">
-            <label class="form-label">📄 PDF URL:</label>
-            <input type="text" id="pdfInput" class="form-control" placeholder="https://example.com/file.pdf" oninput="generateQR()">
-          </div>
-          <div id="wifiFields" class="mb-3" style="display: none;">
-            <label class="form-label">🌐 Сүлжээний нэр (SSID):</label>
-            <input type="text" id="ssidInput" class="form-control" placeholder="Жишээ: MyWiFi" oninput="generateQR()">
-            <label class="form-label mt-2">🔒 Хамгаалалтын төрөл:</label>
-            <select id="securityInput" class="form-select" onchange="generateQR()">
-              <option value="WPA">WPA/WPA2</option>
-              <option value="WEP">WEP</option>
-              <option value="nopass">Нууц үггүй</option>
-            </select>
-            <label class="form-label mt-2">🔑 Нууц үг:</label>
-            <input type="text" id="passwordInput" class="form-control" placeholder="Нууц үг (хэрвээ байгаа бол)" oninput="generateQR()">
-          </div>
+<div class="card shadow-lg p-4">
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">🎨 Dot өнгө:</label>
-              <input type="color" id="dotColorInput" class="form-control form-control-color w-100" value="#0d6efd" onchange="updateColors()">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">🔲 Corner өнгө:</label>
-              <input type="color" id="cornerColorInput" class="form-control form-control-color w-100" value="#0d6efd" onchange="updateColors()">
-            </div>
-            <div class="col-md-12">
-              <label class="form-label">📏 Хэмжээ (px):</label>
-              <input type="range" id="sizeInput" class="form-range" min="150" max="500" value="300" oninput="generateQR()">
-            </div>
-            <div class="col-md-12">
-              <label class="form-label">🖼 Лого (сонголтоор):</label>
-              <input type="file" id="logoInput" accept="image/*" class="form-control" onchange="generateQR()">
-              <button id="removeLogoBtn" class="btn btn-outline-danger mt-2 w-100" style="display: none;" onclick="removeLogo()">🗑️ Зураг устгах</button>
-            </div>
-          </div>
+<h2 class="text-center text-primary mb-4">
+🚀 QR Code Generator PRO
+</h2>
 
-          <button onclick="generateQR()" class="btn btn-success mt-4 w-100">✅ QR код үүсгэх</button>
-        </div>
+<div class="row">
 
-        <!-- QR SECTION -->
-        <div class="qr-section">
-          <div id="qrResult" style="display: none;">
-            <h5>✅ Таны QR код:</h5>
-            <div id="qrcode" class="mx-auto mb-3"></div>
-            <a id="downloadLink" href="#" download="qr_code.png" class="btn btn-primary">⬇️ Татах</a>
-          </div>
-          <p id="error" class="text-danger mt-3" style="display: none;"></p>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- LEFT -->
+<div class="col-md-6">
 
-  <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
-  <script>
-    let qrCode;
+<label class="form-label">QR төрөл</label>
 
-    function toggleFields() {
-      const type = document.getElementById("qrType").value;
-      document.getElementById("websiteFields").style.display = type === "website" ? "block" : "none";
-      document.getElementById("pdfFields").style.display = type === "pdf" ? "block" : "none";
-      document.getElementById("wifiFields").style.display = type === "wifi" ? "block" : "none";
-    }
+<select id="qrType"
+class="form-select"
+onchange="toggleFields();generateQR();">
 
-    function generateQR() {
-      const type = document.getElementById("qrType").value;
-      const error = document.getElementById("error");
-      const result = document.getElementById("qrResult");
-      const qrcodeDiv = document.getElementById("qrcode");
-      let data = "";
+<option value="website">Website</option>
+<option value="pdf">PDF</option>
+<option value="wifi">WiFi</option>
 
-      if (type === "website") {
-        data = document.getElementById("websiteInput").value;
-        if (!data) return showError("Website URL оруулна уу!");
-      } else if (type === "pdf") {
-        data = document.getElementById("pdfInput").value;
-        if (!data) return showError("PDF URL оруулна уу!");
-      } else if (type === "wifi") {
-        const ssid = document.getElementById("ssidInput").value;
-        const security = document.getElementById("securityInput").value;
-        const password = document.getElementById("passwordInput").value;
-        if (!ssid) return showError("Сүлжээний нэр оруулна уу!");
-        data = `WIFI:S:${ssid};T:${security};P:${password};;`;
-      }
+</select>
 
-      error.style.display = "none";
-      result.style.display = "none";
-      qrcodeDiv.innerHTML = "";
+<div id="websiteFields" class="mt-3">
+<input id="websiteInput"
+class="form-control"
+placeholder="https://example.com"
+oninput="generateQR()">
+</div>
 
-      const imageFile = document.getElementById("logoInput").files[0];
-      const dotColor = document.getElementById("dotColorInput").value;
-      const cornerColor = document.getElementById("cornerColorInput").value;
-      const size = parseInt(document.getElementById("sizeInput").value);
+<div id="pdfFields"
+style="display:none;"
+class="mt-3">
 
-      const config = {
-        width: size,
-        height: size,
-        type: "canvas",
-        data: data,
-        image: undefined,
-        margin: 10,
-        qrOptions: { errorCorrectionLevel: "H" },
-        dotsOptions: { type: "rounded", color: dotColor },
-        backgroundOptions: { color: "#ffffff" },
-        imageOptions: {
-          crossOrigin: "anonymous",
-          hideBackgroundDots: true,
-          imageSize: 0.4,
-          margin: 5
-        },
-        cornersSquareOptions: { type: "extra-rounded", color: cornerColor },
-        cornersDotOptions: { type: "dot", color: cornerColor }
-      };
+<input id="pdfInput"
+class="form-control"
+placeholder="https://file.pdf"
+oninput="generateQR()">
 
-      if (imageFile) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          config.image = e.target.result;
-          document.getElementById("removeLogoBtn").style.display = "block";
-          buildQR(config);
-        };
-        reader.readAsDataURL(imageFile);
-      } else {
-        document.getElementById("removeLogoBtn").style.display = "none";
-        buildQR(config);
-      }
-    }
+</div>
 
-    function buildQR(config) {
-      qrCode = new QRCodeStyling(config);
-      const qrcodeDiv = document.getElementById("qrcode");
-      qrcodeDiv.innerHTML = "";
-      qrCode.append(qrcodeDiv);
+<div id="wifiFields"
+style="display:none;"
+class="mt-3">
 
-      qrCode.getRawData("png").then(blob => {
-        document.getElementById("downloadLink").href = URL.createObjectURL(blob);
-        document.getElementById("qrResult").style.display = "block";
-      }).catch(() => {
-        showError("QR код үүсгэхэд алдаа гарлаа!");
-      });
-    }
+<input id="ssidInput"
+class="form-control mb-2"
+placeholder="WiFi нэр"
+oninput="generateQR()">
 
-    function updateColors() {
-      if (!qrCode) return;
-      const dotColor = document.getElementById("dotColorInput").value;
-      const cornerColor = document.getElementById("cornerColorInput").value;
-      qrCode.update({
-        dotsOptions: { color: dotColor },
-        cornersSquareOptions: { color: cornerColor },
-        cornersDotOptions: { color: cornerColor }
-      });
-    }
+<select id="securityInput"
+class="form-select mb-2"
+onchange="generateQR()">
 
-    function showError(message) {
-      const error = document.getElementById("error");
-      error.textContent = message;
-      error.style.display = "block";
-      document.getElementById("qrResult").style.display = "none";
-    }
+<option value="WPA">WPA/WPA2</option>
+<option value="nopass">No password</option>
 
-    function toggleTheme() {
-      document.body.classList.toggle("dark-mode");
-      document.documentElement.classList.toggle("dark-mode");
-    }
+</select>
 
-    function removeLogo() {
-      document.getElementById("logoInput").value = "";
-      document.getElementById("removeLogoBtn").style.display = "none";
-      generateQR();
-    }
+<input id="passwordInput"
+class="form-control"
+placeholder="Password"
+oninput="generateQR()">
 
-    toggleFields();
-  </script>
+</div>
+
+<hr>
+
+<div class="row">
+
+<div class="col-4">
+
+<label>🎨 Dot</label>
+<input type="color"
+id="dotColor"
+value="#0d6efd"
+class="form-control form-control-color"
+onchange="generateQR()">
+
+</div>
+
+<div class="col-4">
+
+<label>🔲 Corner</label>
+<input type="color"
+id="cornerColor"
+value="#0d6efd"
+class="form-control form-control-color"
+onchange="generateQR()">
+
+</div>
+
+<div class="col-4">
+
+<label>🧱 Background</label>
+<input type="color"
+id="bgColor"
+value="#ffffff"
+class="form-control form-control-color"
+onchange="generateQR()">
+
+</div>
+
+</div>
+
+<div class="form-check mt-2">
+
+<input type="checkbox"
+id="transparent"
+class="form-check-input"
+onchange="generateQR()">
+
+<label class="form-check-label">
+Transparent
+</label>
+
+</div>
+
+<hr>
+
+<label>Size</label>
+<input type="range"
+min="200"
+max="500"
+value="300"
+id="size"
+class="form-range"
+oninput="generateQR()">
+
+<label>Logo</label>
+<input type="file"
+id="logo"
+accept="image/*"
+class="form-control"
+onchange="generateQR()">
+
+<button class="btn btn-outline-danger w-100 mt-2"
+onclick="removeLogo()">
+Remove Logo
+</button>
+
+</div>
+
+
+<!-- RIGHT -->
+<div class="col-md-6 text-center">
+
+<div id="qrcode"></div>
+
+<a id="download"
+class="btn btn-primary mt-3"
+download="qr.png">
+⬇️ Download
+</a>
+
+<p id="error"
+class="text-danger mt-3"></p>
+
+</div>
+
+</div>
+</div>
+</div>
+
+
+<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+<script>
+
+let qr;
+
+function toggleTheme(){
+document.body.classList.toggle("dark-mode");
+}
+
+function toggleFields(){
+
+const t=document.getElementById("qrType").value;
+
+websiteFields.style.display=
+t==="website"?"block":"none";
+
+pdfFields.style.display=
+t==="pdf"?"block":"none";
+
+wifiFields.style.display=
+t==="wifi"?"block":"none";
+
+}
+
+function getData(){
+
+const t=qrType.value;
+
+if(t==="website") return websiteInput.value;
+if(t==="pdf") return pdfInput.value;
+
+if(t==="wifi"){
+
+if(!ssidInput.value) return "";
+
+return `WIFI:S:${ssidInput.value};T:${securityInput.value};P:${passwordInput.value};;`;
+
+}
+
+}
+
+function generateQR(){
+
+const data=getData();
+
+if(!data){
+error.innerText="Мэдээлэл оруулна уу!";
+return;
+}
+
+error.innerText="";
+
+const size=parseInt(size.value);
+const logoFile=logo.files[0];
+
+const config={
+
+width:size,
+height:size,
+type:"canvas",
+data:data,
+margin:10,
+
+qrOptions:{
+errorCorrectionLevel:"H"
+},
+
+dotsOptions:{
+type:"rounded",
+color:dotColor.value
+},
+
+backgroundOptions:{
+color:transparent.checked
+?"transparent"
+:bgColor.value
+},
+
+cornersSquareOptions:{
+type:"extra-rounded",
+color:cornerColor.value
+},
+
+cornersDotOptions:{
+type:"dot",
+color:cornerColor.value
+},
+
+imageOptions:{
+hideBackgroundDots:true,
+imageSize:0.4,
+margin:5
+}
+
+};
+
+if(qr) qrcode.innerHTML="";
+
+function build(img){
+
+if(img) config.image=img;
+
+qr=new QRCodeStyling(config);
+
+qr.append(qrcode);
+
+qr.getRawData("png")
+.then(blob=>{
+
+download.href=
+URL.createObjectURL(blob);
+
+});
+
+}
+
+if(logoFile){
+
+const reader=new FileReader();
+
+reader.onload=e=>build(e.target.result);
+
+reader.readAsDataURL(logoFile);
+
+}else build();
+
+}
+
+function removeLogo(){
+logo.value="";
+generateQR();
+}
+
+toggleFields();
+
+</script>
 </body>
 </html>
