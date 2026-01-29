@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>👑 ULTRA QR GENERATOR</title>
+<title>ULTRA QR GENERATOR</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
@@ -12,31 +12,23 @@
 <style>
 
 body{
-background:#eef1f6;
+background:#f4f6fb;
 }
 
 .card{
-border-radius:22px;
+border-radius:20px;
 }
 
 #qrWrapper{
-padding:30px;
-border-radius:30px;
-display:inline-block;
+padding:25px;
+border-radius:25px;
 background:white;
-position:relative;
-overflow:hidden;
+display:inline-block;
 }
 
 .glass{
-background:rgba(255,255,255,.25) !important;
-backdrop-filter:blur(18px);
-}
-
-.logo-preview{
-width:80px;
-border-radius:12px;
-margin-top:10px;
+background:rgba(255,255,255,.2)!important;
+backdrop-filter:blur(15px);
 }
 
 </style>
@@ -48,9 +40,7 @@ margin-top:10px;
 
 <div class="card shadow-lg p-4">
 
-<h2 class="text-center text-primary mb-4">
-👑 ULTRA QR GENERATOR
-</h2>
+<h3 class="text-center mb-4">🔥 ULTRA QR GENERATOR</h3>
 
 <div class="row">
 
@@ -58,22 +48,16 @@ margin-top:10px;
 <div class="col-md-5">
 
 <label>QR төрөл</label>
-<select id="qrType" class="form-select mb-2">
-<option value="url">Website</option>
-<option value="wifi">WiFi</option>
-<option value="email">Email</option>
-<option value="phone">Phone</option>
-<option value="sms">SMS</option>
-<option value="vcard">vCard</option>
-</select>
+<select id="qrType" class="form-select mb-2"></select>
 
-<div id="dynamicFields"></div>
+<div id="fields"></div>
 
 <hr>
 
-<label>QR Size (4K ready)</label>
-<input type="range" min="300" max="2000" value="800"
-id="size" class="form-range">
+<label>Size (4K ready)</label>
+<input type="range" min="300" max="2000"
+value="600" id="size"
+class="form-range">
 
 <label>Gradient</label><br>
 <input type="color" id="c1" value="#0d6efd">
@@ -81,18 +65,7 @@ id="size" class="form-range">
 
 <hr>
 
-<h5>🎨 Style</h5>
-
-<select id="style" class="form-select mb-2">
-<option value="default">Default</option>
-<option value="glass">Glass</option>
-<option value="apple">Apple</option>
-<option value="android">Android</option>
-</select>
-
-<hr>
-
-<h5>🖼 Logo</h5>
+<h5>Logo</h5>
 
 <input type="file"
 id="logoInput"
@@ -100,11 +73,11 @@ accept="image/*"
 class="form-control mb-2">
 
 <button class="btn btn-outline-danger w-100 mb-2"
-onclick="removeLogo()">
+id="removeLogo">
 Remove Logo
 </button>
 
-<label>Logo size (auto safe ≤ 35%)</label>
+<label>Logo size (safe ≤ 0.35)</label>
 <input type="range"
 min="0.1"
 max="0.35"
@@ -113,42 +86,19 @@ value="0.25"
 id="logoSize"
 class="form-range">
 
-<div class="form-check">
-<input type="checkbox"
-id="circle"
-class="form-check-input">
-<label class="form-check-label">
-Circle crop
-</label>
-</div>
-
-<div class="form-check">
-<input type="checkbox"
-id="shadow"
-class="form-check-input">
-<label class="form-check-label">
-Shadow
-</label>
-</div>
-
-<label>Border</label>
-<input type="color"
-id="borderColor"
-value="#ffffff"
-class="form-control mb-3">
-
 <hr>
 
-<h5>🌄 Background Image</h5>
+<label>Style</label>
+<select id="style" class="form-select">
+<option value="default">Default</option>
+<option value="glass">Glass</option>
+<option value="dots">Android</option>
+<option value="classy">Apple</option>
+</select>
 
-<input type="file"
-id="bgImage"
-accept="image/*"
-class="form-control mb-3">
-
-<button class="btn btn-success w-100"
-onclick="downloadQR()">
-⬇️ Download
+<button class="btn btn-primary w-100 mt-3"
+id="downloadBtn">
+Download QR
 </button>
 
 </div>
@@ -170,137 +120,129 @@ onclick="downloadQR()">
 
 <script>
 
-let qr;
+let qr=null;
 let logoImage=null;
-let backgroundImage=null;
 
 //////////////////////////////////////////////////
-/////// QR FIELD BUILDER
+//// TYPES
+//////////////////////////////////////////////////
+
+const types={
+url:`<input id="data"
+class="form-control mb-2"
+value="https://google.com">`,
+
+wifi:`
+<input id="ssid"
+class="form-control mb-2"
+placeholder="WiFi нэр">
+
+<input id="pass"
+class="form-control mb-2"
+placeholder="Password">
+`,
+
+email:`
+<input id="mail"
+class="form-control mb-2"
+placeholder="email@example.com">
+`
+};
+
+const qrType=document.getElementById("qrType");
+const fields=document.getElementById("fields");
+
+Object.keys(types).forEach(t=>{
+const o=document.createElement("option");
+o.value=t;
+o.textContent=t.toUpperCase();
+qrType.appendChild(o);
+});
+
+//////////////////////////////////////////////////
+//// BUILD FIELDS
 //////////////////////////////////////////////////
 
 function buildFields(){
 
-const t=qrType.value;
-let html="";
-
-if(t==="url")
-html=`<input id="data" class="form-control mb-2"
-value="https://google.com">`;
-
-if(t==="wifi")
-html=`
-<input id="ssid" class="form-control mb-2" placeholder="SSID">
-<input id="pass" class="form-control mb-2" placeholder="Password">
-`;
-
-if(t==="email")
-html=`
-<input id="mail" class="form-control mb-2" placeholder="email@example.com">
-`;
-
-if(t==="phone")
-html=`<input id="phone" class="form-control mb-2" placeholder="+976...">`;
-
-if(t==="sms")
-html=`
-<input id="smsphone" class="form-control mb-2" placeholder="+976...">
-<input id="smsmsg" class="form-control mb-2" placeholder="Message">
-`;
-
-if(t==="vcard")
-html=`
-<input id="name" class="form-control mb-2" placeholder="Name">
-<input id="org" class="form-control mb-2" placeholder="Company">
-<input id="tel" class="form-control mb-2" placeholder="Phone">
-`;
-
-dynamicFields.innerHTML=html;
+fields.innerHTML=types[qrType.value];
 
 setTimeout(()=>{
-document.querySelectorAll("#dynamicFields input")
-.forEach(el=>el.oninput=buildQR);
-},100);
+fields.querySelectorAll("input")
+.forEach(el=>el.addEventListener("input",buildQR));
+},50);
 
 }
 
-qrType.onchange=()=>{
-buildFields();
-buildQR();
-};
-
 //////////////////////////////////////////////////
-/////// DATA BUILDER
+//// GET DATA
 //////////////////////////////////////////////////
 
-function getQRData(){
+function getData(){
 
 const t=qrType.value;
 
-if(t==="url") return data.value;
+if(t==="url")
+return document.getElementById("data")?.value;
 
-if(t==="wifi")
-return `WIFI:T:WPA;S:${ssid.value};P:${pass.value};;`;
+if(t==="wifi"){
 
-if(t==="email")
-return `mailto:${mail.value}`;
+const ssid=document.getElementById("ssid")?.value;
+if(!ssid) return "";
 
-if(t==="phone")
-return `tel:${phone.value}`;
+const pass=document.getElementById("pass")?.value;
 
-if(t==="sms")
-return `SMSTO:${smsphone.value}:${smsmsg.value}`;
+return `WIFI:T:WPA;S:${ssid};P:${pass};;`;
+}
 
-if(t==="vcard")
-return `BEGIN:VCARD
-VERSION:3.0
-FN:${name.value}
-ORG:${org.value}
-TEL:${tel.value}
-END:VCARD`;
+if(t==="email"){
+
+const m=document.getElementById("mail")?.value;
+return m?`mailto:${m}`:"";
+}
 
 }
 
 //////////////////////////////////////////////////
-/////// QR BUILDER
+//// BUILD QR
 //////////////////////////////////////////////////
 
 function buildQR(){
 
-const qrData=getQRData();
-if(!qrData) return;
+const data=getData();
+if(!data) return;
 
-const size=parseInt(size.value);
+const size=parseInt(
+document.getElementById("size").value
+);
 
-let dotType="rounded";
-
-if(style.value==="apple") dotType="classy";
-if(style.value==="android") dotType="dots";
+const style=document.getElementById("style").value;
 
 const config={
 
 width:size,
 height:size,
 type:"png",
-data:qrData,
+data:data,
 
 dotsOptions:{
-type:dotType,
+type:style==="default"?"rounded":style,
 gradient:{
 type:"linear",
 rotation:Math.PI/4,
 colorStops:[
-{offset:0,color:c1.value},
-{offset:1,color:c2.value}
+{offset:0,color:document.getElementById("c1").value},
+{offset:1,color:document.getElementById("c2").value}
 ]
 }
 },
 
-backgroundOptions:{
-color:"#ffffff"
-},
-
 qrOptions:{
 errorCorrectionLevel:"H"
+},
+
+backgroundOptions:{
+color:"#ffffff"
 }
 
 };
@@ -310,7 +252,9 @@ if(logoImage){
 config.image=logoImage;
 
 config.imageOptions={
-imageSize:parseFloat(logoSize.value),
+imageSize:parseFloat(
+document.getElementById("logoSize").value
+),
 margin:6
 };
 
@@ -318,40 +262,41 @@ margin:6
 
 qr=new QRCodeStyling(config);
 
-qrcode.innerHTML="";
-qr.append(qrcode);
+document.getElementById("qrcode").innerHTML="";
+qr.append(
+document.getElementById("qrcode")
+);
 
-applyWrapperStyles();
+applyGlass();
 
 }
 
 //////////////////////////////////////////////////
-/////// WRAPPER STYLES
+//// GLASS
 //////////////////////////////////////////////////
 
-function applyWrapperStyles(){
+function applyGlass(){
 
-qrWrapper.classList.remove("glass");
+const wrapper=
+document.getElementById("qrWrapper");
 
-if(style.value==="glass")
-qrWrapper.classList.add("glass");
-
-if(backgroundImage){
-
-qrWrapper.style.background=
-`url(${backgroundImage}) center/cover`;
-
+if(
+document.getElementById("style").value==="glass"
+){
+wrapper.classList.add("glass");
 }else{
-qrWrapper.style.background="white";
+wrapper.classList.remove("glass");
 }
 
 }
 
 //////////////////////////////////////////////////
-/////// LOGO HANDLERS
+//// LOGO
 //////////////////////////////////////////////////
 
-logoInput.onchange=e=>{
+document
+.getElementById("logoInput")
+.addEventListener("change",e=>{
 
 const file=e.target.files[0];
 if(!file) return;
@@ -364,64 +309,71 @@ buildQR();
 };
 
 reader.readAsDataURL(file);
-};
 
-function removeLogo(){
+});
+
+document
+.getElementById("removeLogo")
+.addEventListener("click",()=>{
+
 logoImage=null;
-logoInput.value="";
+document.getElementById("logoInput").value="";
 buildQR();
-}
+
+});
 
 //////////////////////////////////////////////////
-/////// BG IMAGE
+//// DOWNLOAD
 //////////////////////////////////////////////////
 
-bgImage.onchange=e=>{
+document
+.getElementById("downloadBtn")
+.addEventListener("click",()=>{
 
-const file=e.target.files[0];
-if(!file) return;
-
-const reader=new FileReader();
-
-reader.onload=x=>{
-backgroundImage=x.target.result;
-buildQR();
-};
-
-reader.readAsDataURL(file);
-};
-
-//////////////////////////////////////////////////
-/////// DOWNLOAD
-//////////////////////////////////////////////////
-
-function downloadQR(){
+if(!qr) return;
 
 qr.getRawData("png")
 .then(blob=>{
 
 const a=document.createElement("a");
+
 a.href=URL.createObjectURL(blob);
-a.download="ULTRA_QR.png";
+a.download="QR.png";
 a.click();
 
 });
 
-}
+});
+
+//////////////////////////////////////////////////
+//// EVENTS
+//////////////////////////////////////////////////
+
+document
+.getElementById("size")
+.addEventListener("input",buildQR);
+
+document
+.getElementById("c1")
+.addEventListener("change",buildQR);
+
+document
+.getElementById("c2")
+.addEventListener("change",buildQR);
+
+document
+.getElementById("style")
+.addEventListener("change",buildQR);
+
+qrType.addEventListener("change",()=>{
+buildFields();
+setTimeout(buildQR,100);
+});
 
 //////////////////////////////////////////////////
 
-size.oninput=buildQR;
-logoSize.oninput=buildQR;
-c1.onchange=buildQR;
-c2.onchange=buildQR;
-style.onchange=buildQR;
-circle.onchange=buildQR;
-shadow.onchange=buildQR;
-borderColor.onchange=buildQR;
-
 buildFields();
-buildQR();
+setTimeout(buildQR,200);
 
 </script>
 
